@@ -440,10 +440,9 @@
     },
     "cpp11": {
       "Package": "cpp11",
-      "Version": "0.2.7",
+      "Version": "0.1.0",
       "Source": "Repository",
-      "Repository": "CRAN",
-      "Hash": "730eebcc741a5c36761f7d4d0f5e37b8"
+      "Repository": "CRAN"
     },
     "crayon": {
       "Package": "crayon",
@@ -867,10 +866,9 @@
     },
     "nloptr": {
       "Package": "nloptr",
-      "Version": "1.2.2.2",
+      "Version": "2.0.3",
       "Source": "Repository",
-      "Repository": "CRAN",
-      "Hash": "2737faeee353704efec5afa1e943dd64"
+      "Repository": "CRAN"
     },
     "nnet": {
       "Package": "nnet",
