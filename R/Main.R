@@ -231,6 +231,7 @@ execute <- function(connectionDetails,
                                     indicationId, indicationId))
 }
 
+#' @export
 writePairedCounts <- function(outputFolder, indicationId) {
 
     tcos <- readr::read_csv(file = system.file("settings", paste0(indicationId, "TcosOfInterest.csv"),

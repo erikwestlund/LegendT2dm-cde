@@ -77,6 +77,7 @@ createExposureCohorts(connectionDetails = connectionDetails,
 
 # We now summarize the treatment/comparator pairs as specified in settings/ciTcosOfInterest.csv
 pairedExposureSummaryPath = file.path(indicationFolder, "pairedExposureSummaryFilteredBySize.csv")
+
 if(!file.exists(pairedExposureSummaryPath) || createPairedExposureSummary){
   writePairedCounts(outputFolder = outputFolder, indicationId = indicationId)
   filterByExposureCohortsSize(outputFolder = outputFolder,

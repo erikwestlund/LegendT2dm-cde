@@ -10,6 +10,7 @@ createOutcomeCohorts(
   vocabularyDatabaseSchema = cdmDatabaseSchema,
   cohortDatabaseSchema,
   tablePrefix = "legendt2dm",
+  outcomesFile = "settings/OutcomesOfInterest.csv",
   oracleTempSchema,
   outputFolder,
   databaseId,
