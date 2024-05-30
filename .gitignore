@@ -9,6 +9,7 @@ renv
 .DS_Store
 
 extra/Credentials.R
+hs_err*
 
 Documents/Protocol/Protocol.html
 Documents/Protocol/Protocol.pdf

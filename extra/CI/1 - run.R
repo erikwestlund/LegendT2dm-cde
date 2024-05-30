@@ -51,6 +51,8 @@ filterOutcomeCohorts <- NULL
 filterExposureCohorts <- NULL
 oracleTempSchema <- NULL
 createPairedExposureSummary <- TRUE
+studyEndDate <- ""
+minCohortSize <- 0
 vocabularyDatabaseSchema <- cdmDatabaseSchema
 
 # We will pull the necessary sections of execute in ./R/Main.R to generate required data.
@@ -85,14 +87,6 @@ if(!file.exists(pairedExposureSummaryPath) || createPairedExposureSummary){
                               minCohortSize = minCohortSize)
 }
 exposureSummary = read.csv(pairedExposureSummaryPath)
-if(nrow(exposureSummary) < 1){
-  ParallelLogger::logInfo(sprintf("All exposure cohort sizes in target-comparator pairs are below `minCohortSize = %s`! No analyses to run.",
-                                  minCohortSize))
-  ParallelLogger::logInfo(sprintf("Stopped execute() for LEGEND-T2DM %s-vs-%s studies without generating results.",
-                                  indicationId, indicationId))
-  return()
-}
-
 
 # Note that I have modified this function to accept an Outcomes parameter, allowing us
 # to pull fewer outcomes.
@@ -107,6 +101,7 @@ createOutcomeCohorts(connectionDetails = connectionDetails,
                      databaseId = databaseId,
                      filterOutcomeCohorts = filterOutcomeCohorts)
 
+# Pull down the data locally.
 fetchAllDataFromServer(connectionDetails = connectionDetails,
                        cdmDatabaseSchema = cdmDatabaseSchema,
                        oracleTempSchema = oracleTempSchema,
@@ -117,163 +112,25 @@ fetchAllDataFromServer(connectionDetails = connectionDetails,
                        studyEndDate = studyEndDate,
                        useSample = FALSE)
 
-
+# Generate CohortMethod data objects
 generateAllCohortMethodDataObjects(outputFolder = outputFolder,
                                    indicationId = indicationId,
                                    useSample = FALSE,
                                    maxCores = maxCores)
 
-if (runCohortMethod) {
-  runCohortMethod(outputFolder = outputFolder,
-                  indicationId = indicationId,
-                  databaseId = databaseId,
-                  maxCores = maxCores,
-                  runSections = runSections)
-}
-
-# if (computeIncidence) {
-#     computeIncidence(outputFolder = outputFolder, indicationId = indicationId)
-# }
-#
-# if (fetchChronographData) {
-#     fetchChronographData(connectionDetails = connectionDetails,
-#                          cdmDatabaseSchema = cdmDatabaseSchema,
-#                          oracleTempSchema = oracleTempSchema,
-#                          cohortDatabaseSchema = cohortDatabaseSchema,
-#                          tablePrefix = tablePrefix,
-#                          indicationId = indicationId,
-#                          outputFolder = outputFolder)
-# }
-
-if (computeCovariateBalance) {
-  computeCovariateBalance(outputFolder = outputFolder,
-                          indicationId = indicationId,
-                          maxCores = maxCores)
-}
-
-if (exportToCsv) {
-  exportResults(indicationId = indicationId,
-                outputFolder = outputFolder,
+# Run CohortMethod
+# NOTE: This is hacky, but for time saving, if you do not need all the p-score
+# analysis, you can run and abort each of these once the data is exported.
+runCohortMethod(outputFolder = outputFolder,
+                indicationId = indicationId,
                 databaseId = databaseId,
-                databaseName = databaseName,
-                databaseDescription = databaseDescription,
-                minCellCount = minCellCount,
-                runSections = runSections,
                 maxCores = maxCores,
-                exportSettings = exportSettings)
-}
+                runSections = c(1)) #ITT
 
-ParallelLogger::logInfo(sprintf("Finished execute() for LEGEND-T2DM %s-vs-%s studies",
-                                indicationId, indicationId))
+runCohortMethod(outputFolder = outputFolder,
+                indicationId = indicationId,
+                databaseId = databaseId,
+                maxCores = maxCores,
+                runSections = c(3)) #OT2
 
-
-
-
-
-## END execute() ####
-
-
-######
-
-# OLD:
-
-# Required to run study sections -- from Main.R
-writePairedCounts <- function(outputFolder, indicationId) {
-
-    tcos <- readr::read_csv(file = system.file("settings", paste0(indicationId, "TcosOfInterest.csv"),
-                                               package = "LegendT2dm"),
-                            col_types = readr::cols())
-    counts <- readr::read_csv(file = file.path(outputFolder, indicationId, "cohortCounts.csv"),
-                              col_types = readr::cols()) %>%
-        select(.data$cohortDefinitionId, .data$cohortCount)
-
-    tmp <- tcos %>%
-        left_join(counts, by = c("targetId" = "cohortDefinitionId")) %>% rename(targetPairedPersons = .data$cohortCount) %>%
-        left_join(counts, by = c("comparatorId" = "cohortDefinitionId")) %>% rename(comparatorPairedPersons = .data$cohortCount)
-
-    tmp <- tmp %>%
-        mutate(targetPairedPersons = ifelse(is.na(.data$targetPairedPersons), 0, .data$targetPairedPersons)) %>%
-        mutate(comparatorPairedPersons = ifelse(is.na(.data$comparatorPairedPersons), 0, .data$comparatorPairedPersons))
-
-    readr::write_csv(tmp, file = file.path(outputFolder, indicationId, "pairedExposureSummary.csv"))
-}
-
-
-# Using execute function, let's run necessary parts
-indicationFolder <- file.path(outputFolder, indicationId)
-if (!file.exists(indicationFolder)) {
-  dir.create(indicationFolder, recursive = TRUE)
-}
-
-ParallelLogger::addDefaultFileLogger(file.path(indicationFolder, "log.txt"))
-ParallelLogger::addDefaultErrorReportLogger(file.path(outputFolder, "errorReportR.txt"))
-on.exit(ParallelLogger::unregisterLogger("DEFAULT_FILE_LOGGER", silent = TRUE))
-on.exit(ParallelLogger::unregisterLogger("DEFAULT_ERRORREPORT_LOGGER", silent = TRUE), add = TRUE)
-
-sinkFile <- file(file.path(indicationFolder, "console.txt"), open = "wt")
-sink(sinkFile, split = TRUE)
-on.exit(sink(), add = TRUE)
-
-ParallelLogger::logInfo(sprintf("Starting execute() for LEGEND-T2DM %s-vs-%s studies",
-                                indicationId, indicationId))
-
-createExposureCohorts(
-  conn,
-  cdmDatabaseSchema,
-  cdmDatabaseSchema,
-  cohortDatabaseSchema,
-  tablePrefix,
-  indicationId,
-  oracleTempSchema,
-  outputFolder,
-  databaseId,
-  filterOutcomeCohorts
-)
-
-minCohortSize <- 1000
-fetchAllDataFromServer <- TRUE
-studyEndDate <- ""
-
-pairedExposureSummaryPath = file.path(indicationFolder, "pairedExposureSummaryFilteredBySize.csv")
-if(!file.exists(pairedExposureSummaryPath) || createPairedExposureSummary){
-  writePairedCounts(outputFolder = outputFolder, indicationId = indicationId)
-  filterByExposureCohortsSize(outputFolder = outputFolder, indicationId = indicationId,
-                              minCohortSize = minCohortSize)
-}
-exposureSummary = read.csv(pairedExposureSummaryPath)
-
-createOutcomeCohorts(
-  conn,
-  cdmDatabaseSchema,
-  cdmDatabaseSchema,
-  cohortDatabaseSchema,
-  tablePrefix,
-  oracleTempSchema,
-  outputFolder,
-  databaseId,
-  filterOutcomeCohorts
-)
-
-fetchAllDataFromServer(connectionDetails = connectionDetails,
-                       cdmDatabaseSchema = cdmDatabaseSchema,
-                       oracleTempSchema = oracleTempSchema,
-                       cohortDatabaseSchema = cohortDatabaseSchema,
-                       tablePrefix = tablePrefix,
-                       indicationId = indicationId,
-                       outputFolder = outputFolder,
-                       studyEndDate = studyEndDate,
-                       useSample = useSample)
-
-generateAllCohortMethodDataObjects(outputFolder = outputFolder,
-                                   indicationId = indicationId,
-                                   useSample = FALSE,
-                                   maxCores = maxCores)
-
-if (runCohortMethod) {
-  runCohortMethod(outputFolder = outputFolder,
-                  indicationId = indicationId,
-                  databaseId = databaseId,
-                  maxCores = maxCores,
-                  runSections = runSections)
-}
 
