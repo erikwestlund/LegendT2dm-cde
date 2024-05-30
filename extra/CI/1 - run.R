@@ -50,9 +50,15 @@ indicationId <- "ci"
 filterOutcomeCohorts <- NULL
 filterExposureCohorts <- NULL
 oracleTempSchema <- NULL
+createPairedExposureSummary <- TRUE
 vocabularyDatabaseSchema <- cdmDatabaseSchema
 
 # We will pull the necessary sections of execute in ./R/Main.R to generate required data.
+
+indicationFolder <- file.path(outputFolder, indicationId)
+if (!file.exists(indicationFolder)) {
+  dir.create(indicationFolder, recursive = TRUE)
+}
 
 # Note: we swap out the indicationId from "class" to "ci" to be customized for what we want to study
 # This requires us to create some extra settings files. Namely:
@@ -68,6 +74,24 @@ createExposureCohorts(connectionDetails = connectionDetails,
                       databaseId = databaseId,
                       filterExposureCohorts = filterExposureCohorts,
                       imputeExposureLengthWhenMissing = imputeExposureLengthWhenMissing)
+
+# We now summarize the treatment/comparator pairs as specified in settings/ciTcosOfInterest.csv
+pairedExposureSummaryPath = file.path(indicationFolder, "pairedExposureSummaryFilteredBySize.csv")
+if(!file.exists(pairedExposureSummaryPath) || createPairedExposureSummary){
+  writePairedCounts(outputFolder = outputFolder, indicationId = indicationId)
+  filterByExposureCohortsSize(outputFolder = outputFolder,
+                              indicationId = indicationId,
+                              minCohortSize = minCohortSize)
+}
+exposureSummary = read.csv(pairedExposureSummaryPath)
+if(nrow(exposureSummary) < 1){
+  ParallelLogger::logInfo(sprintf("All exposure cohort sizes in target-comparator pairs are below `minCohortSize = %s`! No analyses to run.",
+                                  minCohortSize))
+  ParallelLogger::logInfo(sprintf("Stopped execute() for LEGEND-T2DM %s-vs-%s studies without generating results.",
+                                  indicationId, indicationId))
+  return()
+}
+
 
 # Note that I have modified this function to accept an Outcomes parameter, allowing us
 # to pull fewer outcomes.

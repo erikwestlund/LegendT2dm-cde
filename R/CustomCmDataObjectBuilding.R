@@ -91,6 +91,7 @@ fetchAllDataFromServer <- function(connectionDetails,
     # Upload comparisons with enough data ---------------------------------------------------------
     uniqueCohortTable <- data.frame(cohortDefinitionId = unique(c(exposureSummary$targetId,
                                                                   exposureSummary$comparatorId)))
+
     colnames(uniqueCohortTable) <- SqlRender::camelCaseToSnakeCase(colnames(uniqueCohortTable))
     DatabaseConnector::insertTable(connection = conn,
                                    tableName = "#comparisons",
