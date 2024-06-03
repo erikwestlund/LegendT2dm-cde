@@ -1,4 +1,5 @@
-# This is adapted from extra/CodeToRunRedShift.R
+# Make sure to run all code until "END ENVIRONMENT PREP"
+# START ENVIRONMENT PREP
 rJava::.jinit(parameters="-Xmx100g", force.init = TRUE)
 options(java.parameters = c("-Xms200g", "-Xmx200g"))
 
@@ -27,7 +28,7 @@ dir.create(resultsDir, showWarnings = FALSE)
 # Configure
 cdmDatabaseSchema <- "omop_cdm_53_pmtx_202203"
 serverHostname <-
-serverSuffix <- "ohdsi_lab"
+  serverSuffix <- "ohdsi_lab"
 cohortDatabaseSchema <- "work_e_westlund185"
 databaseId <- "NEOHDSI"
 databaseName <- "Northeastern PharMetrics Plus"
@@ -55,13 +56,19 @@ studyEndDate <- ""
 minCohortSize <- 0
 vocabularyDatabaseSchema <- cdmDatabaseSchema
 
-# We will pull the necessary sections of execute in ./R/Main.R to generate required data.
+# END ENVIRONMENT PREP
 
+# START DATA EXTRACTION
+# The below can be run in steps and do not need to be run each time.
+
+# STEP 1
+# We will pull the necessary sections of execute in ./R/Main.R to generate required data.
 indicationFolder <- file.path(outputFolder, indicationId)
 if (!file.exists(indicationFolder)) {
   dir.create(indicationFolder, recursive = TRUE)
 }
 
+# STEP 2
 # Note: we swap out the indicationId from "class" to "ci" to be customized for what we want to study
 # This requires us to create some extra settings files. Namely:
 # - settings/ciCohortsToCreate.csv
@@ -77,6 +84,7 @@ createExposureCohorts(connectionDetails = connectionDetails,
                       filterExposureCohorts = filterExposureCohorts,
                       imputeExposureLengthWhenMissing = imputeExposureLengthWhenMissing)
 
+# STEP 3
 # We now summarize the treatment/comparator pairs as specified in settings/ciTcosOfInterest.csv
 pairedExposureSummaryPath = file.path(indicationFolder, "pairedExposureSummaryFilteredBySize.csv")
 
@@ -88,6 +96,7 @@ if(!file.exists(pairedExposureSummaryPath) || createPairedExposureSummary){
 }
 exposureSummary = read.csv(pairedExposureSummaryPath)
 
+# STEP 4
 # Note that I have modified this function to accept an Outcomes parameter, allowing us
 # to pull fewer outcomes.
 createOutcomeCohorts(connectionDetails = connectionDetails,
@@ -101,6 +110,7 @@ createOutcomeCohorts(connectionDetails = connectionDetails,
                      databaseId = databaseId,
                      filterOutcomeCohorts = filterOutcomeCohorts)
 
+# STEP 5
 # Pull down the data locally.
 fetchAllDataFromServer(connectionDetails = connectionDetails,
                        cdmDatabaseSchema = cdmDatabaseSchema,
@@ -112,20 +122,24 @@ fetchAllDataFromServer(connectionDetails = connectionDetails,
                        studyEndDate = studyEndDate,
                        useSample = FALSE)
 
+# STEP 6
 # Generate CohortMethod data objects
 generateAllCohortMethodDataObjects(outputFolder = outputFolder,
                                    indicationId = indicationId,
                                    useSample = FALSE,
                                    maxCores = maxCores)
 
-# Run CohortMethod
-# NOTE: This is hacky, but for time saving, if you do not need all the p-score
-# analysis, you can run and abort each of these once the data is exported.
+# STEP 7
 extractCohortMethodData(outputFolder = outputFolder,
                         indicationId = indicationId,
                         databaseId = databaseId,
                         maxCores = maxCores,
-                        sections = c(1,3)) #ITT, OT2
+                        runSections = c(1,3)) #ITT, OT2
+
+
+# Run CohortMethod
+# NOTE: This is hacky, but for time saving, if you do not need all the p-score
+# analysis, you can run and abort each of these once the data is exported.
 
 runCohortMethod(outputFolder = outputFolder,
                 indicationId = indicationId,
