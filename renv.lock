@@ -56,10 +56,8 @@
       "RemoteType": "github",
       "RemoteHost": "api.github.com",
       "RemoteRepo": "CohortMethod",
-      "RemoteUsername": "OHDSI",
-      "RemoteRef": "legendBalancePatch",
-      "RemoteSha": "18634a3c68a93106562c7b176283d5cafaba5861",
-      "Hash": "b0285b10945182412332a0d30577c0e7"
+      "RemoteUsername": "erikwestlund",
+      "RemoteRef": "d5905be"
     },
     "CompQuadForm": {
       "Package": "CompQuadForm",

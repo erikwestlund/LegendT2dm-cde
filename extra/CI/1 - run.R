@@ -134,23 +134,4 @@ extractCohortMethodData(outputFolder = outputFolder,
                         indicationId = indicationId,
                         databaseId = databaseId,
                         maxCores = maxCores,
-                        runSections = c(1,3)) #ITT, OT2
-
-
-# Run CohortMethod
-# NOTE: This is hacky, but for time saving, if you do not need all the p-score
-# analysis, you can run and abort each of these once the data is exported.
-
-runCohortMethod(outputFolder = outputFolder,
-                indicationId = indicationId,
-                databaseId = databaseId,
-                maxCores = maxCores,
-                runSections = c(1)) #ITT
-
-runCohortMethod(outputFolder = outputFolder,
-                indicationId = indicationId,
-                databaseId = databaseId,
-                maxCores = maxCores,
-                runSections = c(3)) #OT2
-
-
+                        runSections = c(1,2)) #ITT, OT2
