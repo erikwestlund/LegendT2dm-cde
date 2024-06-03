@@ -121,6 +121,12 @@ generateAllCohortMethodDataObjects(outputFolder = outputFolder,
 # Run CohortMethod
 # NOTE: This is hacky, but for time saving, if you do not need all the p-score
 # analysis, you can run and abort each of these once the data is exported.
+extractCohortMethodData(outputFolder = outputFolder,
+                        indicationId = indicationId,
+                        databaseId = databaseId,
+                        maxCores = maxCores,
+                        sections = c(1,3)) #ITT, OT2
+
 runCohortMethod(outputFolder = outputFolder,
                 indicationId = indicationId,
                 databaseId = databaseId,
