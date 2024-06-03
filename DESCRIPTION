@@ -55,7 +55,7 @@ Suggests:
     kableExtra
 Remotes:
     ohdsi/FeatureExtraction,
-    ohdsi/CohortMethod,
+    erikwestlund/CohortMethod,
     ohdsi/MethodEvaluation,
     ohdsi/CohortDiagnostics,
     ohdsi/ROhdsiWebApi,
