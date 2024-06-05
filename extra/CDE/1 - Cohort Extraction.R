@@ -6,6 +6,7 @@ options(java.parameters = c("-Xms200g", "-Xmx200g"))
 library(LegendT2dm)
 library(dbplyr)
 library(dplyr)
+library(stringr)
 library(keyring)
 
 # Configure and download database drivers. These will need to be unzipped.
@@ -22,7 +23,7 @@ options(andromedaTempFolder = andromedaTempDir)
 oracleTempSchema <- NULL
 
 # Results folder
-resultsDir <- "/Users/e.westlund/Documents/Legendt2dmCiOutput"
+resultsDir <- "/Users/e.westlund/Documents/Legendt2dmCdeOutput"
 dir.create(resultsDir, showWarnings = FALSE)
 
 # Configure
@@ -137,10 +138,19 @@ extractCohortMethodData(outputFolder = outputFolder,
                         runSections = c(1,2,3)) #ITT, OT1, OT3
 
 # STEP 8 - Clean up
-analysesOfInterest <- c('ITT', 'OT1', 'OT2')
-outcomesOfInterest <- read.csv("inst/settings/cdeOutcomesOfInterest.csv") %>%
-  pull(cohortId)
+# Delete all covariates file
+unlink(file.path(outputFolder, indicationId, "allCovariates.zip"))
 
-lapply(analysesOfInterest, function(analysis) {
+# Delete redundant cohort data and stray analysis directories in analysis directories
+lapply(c('ITT', 'OT1', 'OT2'), function(analysis) {
+  list.files(file.path(outputFolder, indicationId, "cmOutput", analysis), full.name=TRUE)  %>%
+    stringr::str_subset(pattern="CmData_") %>%
+    unlink()
 
+  list.dirs(file.path(outputFolder, indicationId, "cmOutput", analysis)) %>%
+    stringr::str_subset(pattern="Analysis_") %>%
+    unlink(force=TRUE, recursive=TRUE)
 })
+
+# Compress.
+tar(paste0(outputFolder, ".tgz"), outputFolder, compression="gzip")
