@@ -38,8 +38,6 @@ To use the CDE functionality, follow the directions in the R scripts in the `ext
 
 This fork by default works with all the main drug classes for the ITT, OT1, and OT2 analyses. This is reflected in the `extra/cdeCohorsToCreate.csv`, `extra/cdeOutcomesOfInterest.csv`, and `extra/cdeTcosOfInterest.csv` files. These files can be modified to work with a subset of the drug classes. 
 
-Note that the methods will still extract data on all outcomes, not just those in `cdeOutcomesOfInterest.csv`. This is not computationally intensive, but be aware when working with the generated data files.
-
 This fork depends on a modified version of the `CohortMethod` package (see the `DESCRIPTION` file) which allows for skipping all the propensity score generation and modeling steps. This saves compute time when running the package.
 
 
