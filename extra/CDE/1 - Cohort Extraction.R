@@ -135,3 +135,12 @@ extractCohortMethodData(outputFolder = outputFolder,
                         databaseId = databaseId,
                         maxCores = maxCores,
                         runSections = c(1,2,3)) #ITT, OT1, OT3
+
+# STEP 8 - Clean up
+analysesOfInterest <- c('ITT', 'OT1', 'OT2')
+outcomesOfInterest <- read.csv("inst/settings/cdeOutcomesOfInterest.csv") %>%
+  pull(cohortId)
+
+lapply(analysesOfInterest, function(analysis) {
+
+})
