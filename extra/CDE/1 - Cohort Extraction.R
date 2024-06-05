@@ -6,6 +6,7 @@ options(java.parameters = c("-Xms200g", "-Xmx200g"))
 library(LegendT2dm)
 library(dbplyr)
 library(dplyr)
+library(purrr)
 library(stringr)
 library(keyring)
 
@@ -137,7 +138,9 @@ extractCohortMethodData(outputFolder = outputFolder,
                         maxCores = maxCores,
                         runSections = c(1,2,3)) #ITT, OT1, OT3
 
-# STEP 8 - Clean up
+# STEP 8 - Create Backup and Clean up up
+tar(paste0(outputFolder, "-backup.tgz"), outputFolder, compression="gzip")
+
 # Delete all covariates file
 unlink(file.path(outputFolder, indicationId, "allCovariates.zip"))
 
@@ -152,5 +155,48 @@ lapply(c('ITT', 'OT1', 'OT2'), function(analysis) {
     unlink(force=TRUE, recursive=TRUE)
 })
 
+# Keep only data for SGLT2I vs SU and GLP1RA vs SU
+# GLP1RA main   201100000            SU main  401100000
+# SGLT2I main   301100000            SU main  401100000
+# GLP1RA main ot2  202100000            SU main ot2 402100000
+# SGLT2I main ot2  302100000            SU main ot2 402100000
+cohortComparisonsToKeep <- list(
+  list(t="201100000", c="401100000"),
+  list(t="301100000", c="401100000"),
+  list(t="202100000", c="402100000"),
+  list(t="302100000", c="402100000")
+)
+
+# Delete unneeded cohort files in "allCohorts"
+cohortFiles <- list.files(file.path(outputFolder, "cde", "allCohorts")) %>%
+  stringr::str_subset(pattern="cohorts_")
+keepFiles <- map_chr(cohortComparisonsToKeep, function(pair) {
+  paste0("cohorts_t", pair$t, "_c", pair$c, ".zip")
+})
+file.path(paste(outputFolder, "cde", "allCohorts", cohortFiles[!(cohortFiles %in% keepFiles)], sep="/")) %>%
+  unlink()
+
+# Delete unneeded cohort files in CmOutput with covariates included
+cohortFiles <- list.files(file.path(outputFolder, indicationId, "cmOutput"))  %>%
+  stringr::str_subset(pattern="CmData_")
+keepFiles <- map_chr(cohortComparisonsToKeep, function(pair) {
+  paste0("CmData_l1_t", pair$t, "_c", pair$c, ".zip")
+})
+file.path(paste(outputFolder, "cde", "cmOutput", cohortFiles[!(cohortFiles %in% keepFiles)], sep="/")) %>%
+  unlink()
+
+# Delete unneeded study population files
+lapply(c('ITT', 'OT1', 'OT2'), function(analysis) {
+  prefixesToKeep <- map_chr(cohortComparisonsToKeep, function(pair) {
+    paste0("StudyPop_l1_s1_t", pair$t, "_c", pair$c)
+  })
+  studyPopulationFiles <- list.files(file.path(outputFolder, indicationId, "cmOutput", analysis), full.name=TRUE)
+
+  filesToKeep <- studyPopulationFiles[grep(paste(prefixesToKeep, collapse = "|"), studyPopulationFiles)]
+
+  studyPopulationFiles[!(studyPopulationFiles %in% filesToKeep)] %>%
+    unlink()
+})
+
 # Compress.
-tar(paste0(outputFolder, ".tgz"), outputFolder, compression="gzip")
+tar(paste0(outputFolder, "-extracted.tgz"), outputFolder, compression="gzip")
