@@ -6,7 +6,7 @@
 \usage{
 extractCohortMethodData(
   outputFolder,
-  indicationId = "ci",
+  indicationId = "cde",
   databaseId,
   maxCores = 4,
   includeNegativeControls = FALSE,

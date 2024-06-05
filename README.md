@@ -23,6 +23,26 @@ Requirements
 - [Java](http://java.com)
 - 100 GB of free disk space
 
+⫚ Fork - LegendT2DM Custom Data Extraction (CDE) Package
+========================================================
+
+This fork has been modified to extract LegendT2DM for methods development and testing. The abbreviation and prefix `CDE` has been used throughout to indicate changes.
+
+This fork has the same requirements as the original package (namely, R 4.0.5) but requires some modifications to the original package to run.
+
+To use the CDE functionality, follow the directions in the R scripts in the `extra/CDE/` subdirectory of the package:
+
+* `0 - Prepare Environment.R` - Install the required packages and set up the environment. Note that there are instructions for two changes to the renv.lock file to assure all packages can be downloaded.
+* `1 - Cohort Extraction.R` - Run the CDE process to extract the data from the database. You will need to modify the connection details to your database in the beginning of this file.
+* `2 - Data Preparation.R` - This file provides examples for how to work with the extracted data.
+
+This fork by default works with all the main drug classes for the ITT, OT1, and OT2 analyses. This is reflected in the `extra/cdeCohorsToCreate.csv`, `extra/cdeOutcomesOfInterest.csv`, and `extra/cdeTcosOfInterest.csv` files. These files can be modified to work with a subset of the drug classes. 
+
+Note that the methods will still extract data on all outcomes, not just those in `cdeOutcomesOfInterest.csv`. This is not computationally intensive, but be aware when working with the generated data files.
+
+This fork depends on a modified version of the `CohortMethod` package (see the `DESCRIPTION` file) which allows for skipping all the propensity score generation and modeling steps. This saves compute time when running the package.
+
+
 How to run
 ==========
 1. Follow [these instructions](https://ohdsi.github.io/Hades/rSetup.html) for setting up your R environment, including RTools and Java.

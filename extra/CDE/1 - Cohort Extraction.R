@@ -33,7 +33,7 @@ cohortDatabaseSchema <- "work_e_westlund185"
 databaseId <- "NEOHDSI"
 databaseName <- "Northeastern PharMetrics Plus"
 databaseDescription <- "Northeastern PharMetrics Plus OMOP CDM"
-tablePrefix <- "legend_t2dm_ci"
+tablePrefix <- "legend_t2dm_cde"
 outputFolder <- resultsDir
 maxCores <- 2
 
@@ -47,7 +47,7 @@ connectionDetails <- DatabaseConnector::createConnectionDetails(
   pathToDriver = paste0(databaseDriversDir, "redShiftV1.2.27.1051")
 )
 
-indicationId <- "ci"
+indicationId <- "cde"
 filterOutcomeCohorts <- NULL
 filterExposureCohorts <- NULL
 oracleTempSchema <- NULL
@@ -69,9 +69,9 @@ if (!file.exists(indicationFolder)) {
 }
 
 # STEP 2
-# Note: we swap out the indicationId from "class" to "ci" to be customized for what we want to study
+# Note: we swap out the indicationId from "class" to "cde" to be customized for what we want to study
 # This requires us to create some extra settings files. Namely:
-# - settings/ciCohortsToCreate.csv
+# - settings/cdeCohortsToCreate.csv
 createExposureCohorts(connectionDetails = connectionDetails,
                       cdmDatabaseSchema = cdmDatabaseSchema,
                       vocabularyDatabaseSchema = vocabularyDatabaseSchema,
@@ -104,7 +104,7 @@ createOutcomeCohorts(connectionDetails = connectionDetails,
                      vocabularyDatabaseSchema = vocabularyDatabaseSchema,
                      cohortDatabaseSchema = cohortDatabaseSchema,
                      tablePrefix = tablePrefix,
-                     outcomesFile = "settings/ciOutcomesOfInterest.csv",
+                     outcomesFile = "settings/cdeOutcomesOfInterest.csv",
                      oracleTempSchema = oracleTempSchema,
                      outputFolder = outputFolder,
                      databaseId = databaseId,

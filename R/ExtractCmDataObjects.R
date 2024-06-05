@@ -2,7 +2,7 @@
 #' @export
 extractCohortMethodData <- function(
   outputFolder,
-  indicationId = "ci",
+  indicationId = "cde",
   databaseId,
   maxCores = 4,
   includeNegativeControls = FALSE,
@@ -16,7 +16,7 @@ extractCohortMethodData <- function(
     exposureSummary <- read.csv(file.path(indicationFolder,
                                           "pairedExposureSummaryFilteredBySize.csv"))
 
-    pathToCsv <- system.file("settings",  "ciOutcomesOfInterest.csv", package = "LegendT2dm")
+    pathToCsv <- system.file("settings",  "cdeOutcomesOfInterest.csv", package = "LegendT2dm")
     hois <- read.csv(pathToCsv)
 
     if(includeNegativeControls) {

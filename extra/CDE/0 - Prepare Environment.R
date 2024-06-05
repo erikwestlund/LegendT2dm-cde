@@ -1,6 +1,6 @@
-#0 - prep.R
+#0 - Prepare Environment.R
 
-# first, edit:
+# First, edit:
 # renv.lock
 #
 # set cpp11 to 0.1.0
